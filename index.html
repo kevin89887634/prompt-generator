@@ -126,6 +126,11 @@
             cursor: pointer;
             transition: transform 0.2s, box-shadow 0.2s;
             -webkit-tap-highlight-color: transparent;
+            position: relative;
+            z-index: 10;
+            touch-action: manipulation;
+            -webkit-user-select: none;
+            user-select: none;
         }
 
         .login-btn:hover, .login-btn:active {
@@ -788,6 +793,11 @@
             transition: transform 0.2s, box-shadow 0.2s, opacity 0.2s;
             flex-shrink: 0;
             -webkit-tap-highlight-color: transparent;
+            position: relative;
+            z-index: 10;
+            touch-action: manipulation;
+            -webkit-user-select: none;
+            user-select: none;
         }
 
         .send-btn:hover:not(:disabled), .send-btn:active:not(:disabled) {
@@ -982,7 +992,7 @@
             </div>
             <p class="error-msg" id="errorMsg" data-i18n="passwordError">密码错误，请重试</p>
             <input type="password" class="login-input" id="passwordInput" data-i18n-placeholder="passwordPlaceholder" placeholder="请输入密码">
-            <button class="login-btn" onclick="checkPassword()" type="button">
+            <button class="login-btn" id="loginBtn" type="button">
                 <i class="fas fa-arrow-right"></i> <span data-i18n="loginBtn">进入系统</span>
             </button>
         </div>
@@ -1280,8 +1290,22 @@
 
         // ========== 事件绑定 ==========
         function setupEventListeners() {
+            // 登录相关
             $('passwordInput').addEventListener('keypress', e => {
-                if (e.key === 'Enter') checkPassword();
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    checkPassword();
+                }
+            });
+
+            $('loginBtn').addEventListener('click', e => {
+                e.preventDefault();
+                checkPassword();
+            });
+
+            $('loginBtn').addEventListener('touchend', e => {
+                e.preventDefault();
+                checkPassword();
             });
 
             $('menuToggle').addEventListener('click', toggleSidebar);
@@ -1294,7 +1318,8 @@
             $('uploadBtn').addEventListener('click', () => $('fileInput').click());
             $('fileInput').addEventListener('change', handleFileSelect);
             $('voiceBtn').addEventListener('click', toggleVoice);
-            $('sendBtn').addEventListener('click', sendMessage);
+            $('sendBtn').addEventListener('click', handleSendClick);
+            $('sendBtn').addEventListener('touchend', handleSendClick);
 
             document.querySelectorAll('.quick-prompt-btn').forEach(btn => {
                 btn.addEventListener('click', () => {
@@ -1628,6 +1653,13 @@
             }
 
             $('sendBtn').disabled = false;
+        }
+
+        // 确保点击发送按钮能触发
+        function handleSendClick(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            sendMessage();
         }
 
         function regenerate() {
