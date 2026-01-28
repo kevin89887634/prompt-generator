@@ -8,6 +8,10 @@
     <link href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark.min.css" rel="stylesheet">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/marked/9.1.6/marked.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
     <style>
         :root {
             --bg-primary: #1a1a2e;
@@ -59,8 +63,8 @@
             line-height: 1.6;
         }
 
-        /* ========== 登录页面 ========== */
-        .login-container {
+        /* ========== 登录/注册页面 ========== */
+        .auth-container {
             display: flex;
             justify-content: center;
             align-items: center;
@@ -68,22 +72,22 @@
             padding: 20px;
         }
 
-        .login-box {
+        .auth-box {
             background: var(--bg-card);
             border-radius: 16px;
             padding: clamp(24px, 5vw, 40px);
             width: 100%;
-            max-width: 400px;
+            max-width: 420px;
             box-shadow: var(--shadow);
             border: 1px solid var(--border);
         }
 
-        .login-header {
+        .auth-header {
             text-align: center;
             margin-bottom: clamp(20px, 4vw, 30px);
         }
 
-        .login-header h1 {
+        .auth-header h1 {
             font-size: var(--font-size-xl);
             background: var(--gradient);
             -webkit-background-clip: text;
@@ -92,12 +96,56 @@
             margin-bottom: 8px;
         }
 
-        .login-header p {
+        .auth-header p {
             color: var(--text-secondary);
             font-size: var(--font-size-sm);
         }
 
-        .login-input {
+        .auth-tabs {
+            display: flex;
+            margin-bottom: 24px;
+            border-radius: 10px;
+            overflow: hidden;
+            border: 1px solid var(--border);
+        }
+
+        .auth-tab {
+            flex: 1;
+            padding: 12px;
+            border: none;
+            background: transparent;
+            color: var(--text-secondary);
+            font-size: var(--font-size-sm);
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .auth-tab.active {
+            background: var(--gradient);
+            color: white;
+        }
+
+        .auth-form {
+            display: none;
+        }
+
+        .auth-form.active {
+            display: block;
+        }
+
+        .form-group {
+            margin-bottom: 16px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 6px;
+            font-size: var(--font-size-sm);
+            color: var(--text-secondary);
+        }
+
+        .auth-input {
             width: 100%;
             padding: clamp(12px, 2vw, 16px);
             border: 2px solid var(--border);
@@ -105,16 +153,15 @@
             font-size: 1rem;
             background: var(--bg-input);
             color: var(--text-primary);
-            margin-bottom: 16px;
             transition: border-color 0.3s;
         }
 
-        .login-input:focus {
+        .auth-input:focus {
             outline: none;
             border-color: var(--accent);
         }
 
-        .login-btn {
+        .auth-btn {
             width: 100%;
             padding: clamp(12px, 2vw, 16px);
             background: var(--gradient);
@@ -129,11 +176,37 @@
             position: relative;
             z-index: 10;
             touch-action: manipulation;
+            margin-top: 8px;
         }
 
-        .login-btn:hover, .login-btn:active {
+        .auth-btn:hover:not(:disabled), .auth-btn:active:not(:disabled) {
             transform: translateY(-2px);
             box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+        }
+
+        .auth-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        .auth-btn i {
+            margin-right: 8px;
+        }
+
+        .auth-link {
+            text-align: center;
+            margin-top: 16px;
+        }
+
+        .auth-link a {
+            color: var(--accent);
+            text-decoration: none;
+            font-size: var(--font-size-sm);
+            cursor: pointer;
+        }
+
+        .auth-link a:hover {
+            text-decoration: underline;
         }
 
         .error-msg {
@@ -142,6 +215,58 @@
             margin-bottom: 15px;
             display: none;
             text-align: center;
+            padding: 10px;
+            background: rgba(239, 68, 68, 0.1);
+            border-radius: 8px;
+        }
+
+        .error-msg.show {
+            display: block;
+        }
+
+        .success-msg {
+            color: var(--success);
+            font-size: var(--font-size-sm);
+            margin-bottom: 15px;
+            display: none;
+            text-align: center;
+            padding: 10px;
+            background: rgba(16, 185, 129, 0.1);
+            border-radius: 8px;
+        }
+
+        .success-msg.show {
+            display: block;
+        }
+
+        /* ========== 加载状态 ========== */
+        .loading-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: var(--bg-primary);
+            z-index: 9999;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .loading-overlay.show {
+            display: flex;
+        }
+
+        .loading-spinner {
+            width: 50px;
+            height: 50px;
+            border: 4px solid var(--border);
+            border-top-color: var(--accent);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
         }
 
         /* ========== 主应用布局 ========== */
@@ -261,8 +386,12 @@
         .sidebar-footer {
             padding: 12px;
             border-top: 1px solid var(--border);
+        }
+
+        .sidebar-btns {
             display: flex;
             gap: 8px;
+            margin-bottom: 10px;
         }
 
         .sidebar-btn {
@@ -282,6 +411,57 @@
         }
 
         .sidebar-btn:hover { background: var(--accent-light); border-color: var(--accent); color: var(--accent); }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px;
+            background: var(--bg-card);
+            border-radius: 8px;
+            border: 1px solid var(--border);
+        }
+
+        .user-avatar {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background: var(--gradient);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: var(--font-size-sm);
+        }
+
+        .user-details {
+            flex: 1;
+            overflow: hidden;
+        }
+
+        .user-email {
+            font-size: var(--font-size-sm);
+            color: var(--text-primary);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .logout-btn {
+            padding: 6px 12px;
+            border-radius: 6px;
+            border: 1px solid var(--error);
+            background: transparent;
+            color: var(--error);
+            font-size: var(--font-size-sm);
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .logout-btn:hover {
+            background: var(--error);
+            color: white;
+        }
 
         /* ========== 主聊天区域 ========== */
         .main-area {
@@ -855,18 +1035,78 @@
     </style>
 </head>
 <body>
-    <!-- 登录页面 -->
-    <div class="login-container" id="loginSection">
-        <div class="login-box">
-            <div class="login-header">
+    <!-- 加载状态 -->
+    <div class="loading-overlay" id="loadingOverlay">
+        <div class="loading-spinner"></div>
+        <span data-i18n="loading">加载中...</span>
+    </div>
+
+    <!-- 登录/注册页面 -->
+    <div class="auth-container" id="authSection">
+        <div class="auth-box">
+            <div class="auth-header">
                 <h1><i class="fas fa-wand-magic-sparkles"></i> <span data-i18n="appTitle">AI 提示词生成器</span></h1>
-                <p data-i18n="loginSubtitle">输入密码以开始使用</p>
+                <p data-i18n="authSubtitle">登录或注册以开始使用</p>
             </div>
-            <p class="error-msg" id="errorMsg" data-i18n="passwordError">密码错误，请重试</p>
-            <input type="password" class="login-input" id="passwordInput" data-i18n-placeholder="passwordPlaceholder" placeholder="请输入密码">
-            <button class="login-btn" id="loginBtn" type="button">
-                <i class="fas fa-arrow-right"></i> <span data-i18n="loginBtn">进入系统</span>
-            </button>
+
+            <div class="auth-tabs">
+                <button class="auth-tab active" onclick="switchAuthTab('login')" data-i18n="loginTab">登录</button>
+                <button class="auth-tab" onclick="switchAuthTab('register')" data-i18n="registerTab">注册</button>
+            </div>
+
+            <p class="error-msg" id="authError"></p>
+            <p class="success-msg" id="authSuccess"></p>
+
+            <!-- 登录表单 -->
+            <div class="auth-form active" id="loginForm">
+                <div class="form-group">
+                    <label data-i18n="emailLabel">邮箱</label>
+                    <input type="email" class="auth-input" id="loginEmail" placeholder="your@email.com">
+                </div>
+                <div class="form-group">
+                    <label data-i18n="passwordLabel">密码</label>
+                    <input type="password" class="auth-input" id="loginPassword" placeholder="••••••••">
+                </div>
+                <button class="auth-btn" id="loginBtn" type="button" onclick="handleLogin()">
+                    <i class="fas fa-sign-in-alt"></i> <span data-i18n="loginBtn">登录</span>
+                </button>
+                <div class="auth-link">
+                    <a onclick="showForgotPassword()" data-i18n="forgotPassword">忘记密码？</a>
+                </div>
+            </div>
+
+            <!-- 注册表单 -->
+            <div class="auth-form" id="registerForm">
+                <div class="form-group">
+                    <label data-i18n="emailLabel">邮箱</label>
+                    <input type="email" class="auth-input" id="registerEmail" placeholder="your@email.com">
+                </div>
+                <div class="form-group">
+                    <label data-i18n="passwordLabel">密码</label>
+                    <input type="password" class="auth-input" id="registerPassword" placeholder="至少6位">
+                </div>
+                <div class="form-group">
+                    <label data-i18n="confirmPasswordLabel">确认密码</label>
+                    <input type="password" class="auth-input" id="registerConfirmPassword" placeholder="再次输入密码">
+                </div>
+                <button class="auth-btn" id="registerBtn" type="button" onclick="handleRegister()">
+                    <i class="fas fa-user-plus"></i> <span data-i18n="registerBtn">注册</span>
+                </button>
+            </div>
+
+            <!-- 忘记密码表单 -->
+            <div class="auth-form" id="forgotForm">
+                <div class="form-group">
+                    <label data-i18n="emailLabel">邮箱</label>
+                    <input type="email" class="auth-input" id="forgotEmail" placeholder="your@email.com">
+                </div>
+                <button class="auth-btn" type="button" onclick="handleForgotPassword()">
+                    <i class="fas fa-envelope"></i> <span data-i18n="sendResetEmail">发送重置邮件</span>
+                </button>
+                <div class="auth-link">
+                    <a onclick="switchAuthTab('login')" data-i18n="backToLogin">返回登录</a>
+                </div>
+            </div>
         </div>
     </div>
 
@@ -884,12 +1124,21 @@
                 </div>
                 <div class="chat-list" id="chatList"></div>
                 <div class="sidebar-footer">
-                    <button class="sidebar-btn" id="exportBtn" type="button">
-                        <i class="fas fa-download"></i> <span data-i18n="export">导出</span>
-                    </button>
-                    <button class="sidebar-btn" id="clearAllBtn" type="button">
-                        <i class="fas fa-trash"></i> <span data-i18n="clearAll">清空</span>
-                    </button>
+                    <div class="sidebar-btns">
+                        <button class="sidebar-btn" id="exportBtn" type="button">
+                            <i class="fas fa-download"></i> <span data-i18n="export">导出</span>
+                        </button>
+                        <button class="sidebar-btn" id="clearAllBtn" type="button">
+                            <i class="fas fa-trash"></i> <span data-i18n="clearAll">清空</span>
+                        </button>
+                    </div>
+                    <div class="user-info" id="userInfo">
+                        <div class="user-avatar"><i class="fas fa-user"></i></div>
+                        <div class="user-details">
+                            <div class="user-email" id="userEmail">user@email.com</div>
+                        </div>
+                        <button class="logout-btn" onclick="handleLogout()" data-i18n="logout">登出</button>
+                    </div>
                 </div>
             </aside>
 
@@ -995,14 +1244,38 @@
     </div>
 
     <script>
+        // ========== Firebase 配置 ==========
+        const firebaseConfig = {
+            apiKey: "AIzaSyBS83JliIcoJg2T9nVXG5KUXT9n0nQ-bFM",
+            authDomain: "prompt-generator-36ba4.firebaseapp.com",
+            projectId: "prompt-generator-36ba4",
+            storageBucket: "prompt-generator-36ba4.firebasestorage.app",
+            messagingSenderId: "821549798685",
+            appId: "1:821549798685:web:49606727e49367e0cc7df4"
+        };
+
+        // 初始化 Firebase
+        firebase.initializeApp(firebaseConfig);
+        const auth = firebase.auth();
+        const db = firebase.firestore();
+
         // ========== 多语言配置 ==========
         const i18n = {
             zh: {
                 appTitle: 'AI 提示词生成器',
-                loginSubtitle: '输入密码以开始使用',
-                passwordError: '密码错误，请重试',
-                passwordPlaceholder: '请输入密码',
-                loginBtn: '进入系统',
+                authSubtitle: '登录或注册以开始使用',
+                loginTab: '登录',
+                registerTab: '注册',
+                emailLabel: '邮箱',
+                passwordLabel: '密码',
+                confirmPasswordLabel: '确认密码',
+                loginBtn: '登录',
+                registerBtn: '注册',
+                forgotPassword: '忘记密码？',
+                sendResetEmail: '发送重置邮件',
+                backToLogin: '返回登录',
+                logout: '登出',
+                loading: '加载中...',
                 chatHistory: '对话历史',
                 newChat: '新建对话',
                 export: '导出',
@@ -1051,14 +1324,37 @@
                 micPermission: '请允许使用麦克风',
                 renamed: '已重命名',
                 feedbackThanks: '感谢反馈！',
-                stopped: '已停止生成'
+                stopped: '已停止生成',
+                // Auth errors
+                emailRequired: '请输入邮箱',
+                passwordRequired: '请输入密码',
+                passwordMismatch: '两次密码不一致',
+                passwordTooShort: '密码至少需要6位',
+                invalidEmail: '邮箱格式不正确',
+                emailInUse: '该邮箱已被注册',
+                userNotFound: '用户不存在',
+                wrongPassword: '密码错误',
+                tooManyRequests: '请求过于频繁，请稍后再试',
+                networkRequestFailed: '网络错误，请检查连接',
+                resetEmailSent: '重置邮件已发送，请查收',
+                registerSuccess: '注册成功！请登录',
+                unknownError: '发生错误，请重试'
             },
             en: {
                 appTitle: 'AI Prompt Generator',
-                loginSubtitle: 'Enter password to start',
-                passwordError: 'Wrong password',
-                passwordPlaceholder: 'Enter password',
-                loginBtn: 'Enter',
+                authSubtitle: 'Login or register to start',
+                loginTab: 'Login',
+                registerTab: 'Register',
+                emailLabel: 'Email',
+                passwordLabel: 'Password',
+                confirmPasswordLabel: 'Confirm Password',
+                loginBtn: 'Login',
+                registerBtn: 'Register',
+                forgotPassword: 'Forgot password?',
+                sendResetEmail: 'Send Reset Email',
+                backToLogin: 'Back to Login',
+                logout: 'Logout',
+                loading: 'Loading...',
                 chatHistory: 'Chat History',
                 newChat: 'New Chat',
                 export: 'Export',
@@ -1107,13 +1403,26 @@
                 micPermission: 'Allow microphone access',
                 renamed: 'Renamed',
                 feedbackThanks: 'Thanks for feedback!',
-                stopped: 'Generation stopped'
+                stopped: 'Generation stopped',
+                // Auth errors
+                emailRequired: 'Email is required',
+                passwordRequired: 'Password is required',
+                passwordMismatch: 'Passwords do not match',
+                passwordTooShort: 'Password must be at least 6 characters',
+                invalidEmail: 'Invalid email format',
+                emailInUse: 'Email already in use',
+                userNotFound: 'User not found',
+                wrongPassword: 'Incorrect password',
+                tooManyRequests: 'Too many requests, try again later',
+                networkRequestFailed: 'Network error',
+                resetEmailSent: 'Reset email sent',
+                registerSuccess: 'Registration successful! Please login',
+                unknownError: 'An error occurred'
             }
         };
 
-        // ========== 配置 ==========
+        // ========== Dify API 配置 ==========
         const CONFIG = {
-            PASSWORD: 'hs2026',
             API_BASE_URL: 'https://pro.aifunbox.com/v1',
             API_KEY: 'app-DkhgkE5HuA7JTvXG2P7huh7c'
         };
@@ -1129,26 +1438,268 @@
         let currentTaskId = null;
         let abortController = null;
         let isGenerating = false;
-        let userId = 'user-' + (localStorage.getItem('userId') || Date.now());
+        let currentUser = null;
 
         const $ = id => document.getElementById(id);
-
-        // 保存 userId
-        localStorage.setItem('userId', userId.replace('user-', ''));
 
         // ========== 初始化 ==========
         document.addEventListener('DOMContentLoaded', () => {
             loadTheme();
             loadLang();
-            loadChats();
             setupEventListeners();
             setupTextarea();
             setupDragAndDrop();
 
-            if (sessionStorage.getItem('authenticated') === 'true') {
-                showApp();
-            }
+            // 显示加载状态
+            $('loadingOverlay').classList.add('show');
+
+            // 监听 Firebase 认证状态
+            auth.onAuthStateChanged(async (user) => {
+                $('loadingOverlay').classList.remove('show');
+
+                if (user) {
+                    currentUser = user;
+                    await showApp();
+                } else {
+                    currentUser = null;
+                    showAuth();
+                }
+            });
         });
+
+        // ========== 认证相关函数 ==========
+        function switchAuthTab(tab) {
+            // 清除消息
+            $('authError').classList.remove('show');
+            $('authSuccess').classList.remove('show');
+
+            // 切换标签
+            document.querySelectorAll('.auth-tab').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.auth-form').forEach(f => f.classList.remove('active'));
+
+            if (tab === 'login') {
+                document.querySelectorAll('.auth-tab')[0].classList.add('active');
+                $('loginForm').classList.add('active');
+            } else if (tab === 'register') {
+                document.querySelectorAll('.auth-tab')[1].classList.add('active');
+                $('registerForm').classList.add('active');
+            } else if (tab === 'forgot') {
+                $('forgotForm').classList.add('active');
+            }
+        }
+
+        function showForgotPassword() {
+            document.querySelectorAll('.auth-tab').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.auth-form').forEach(f => f.classList.remove('active'));
+            $('forgotForm').classList.add('active');
+            $('authError').classList.remove('show');
+            $('authSuccess').classList.remove('show');
+        }
+
+        function showAuthError(message) {
+            $('authError').textContent = message;
+            $('authError').classList.add('show');
+            $('authSuccess').classList.remove('show');
+        }
+
+        function showAuthSuccess(message) {
+            $('authSuccess').textContent = message;
+            $('authSuccess').classList.add('show');
+            $('authError').classList.remove('show');
+        }
+
+        function getAuthErrorMessage(error) {
+            const errorMap = {
+                'auth/invalid-email': 'invalidEmail',
+                'auth/email-already-in-use': 'emailInUse',
+                'auth/user-not-found': 'userNotFound',
+                'auth/wrong-password': 'wrongPassword',
+                'auth/too-many-requests': 'tooManyRequests',
+                'auth/network-request-failed': 'networkRequestFailed',
+                'auth/invalid-credential': 'wrongPassword'
+            };
+            const key = errorMap[error.code] || 'unknownError';
+            return t(key);
+        }
+
+        async function handleLogin() {
+            const email = $('loginEmail').value.trim();
+            const password = $('loginPassword').value;
+
+            if (!email) {
+                showAuthError(t('emailRequired'));
+                return;
+            }
+            if (!password) {
+                showAuthError(t('passwordRequired'));
+                return;
+            }
+
+            $('loginBtn').disabled = true;
+
+            try {
+                await auth.signInWithEmailAndPassword(email, password);
+            } catch (error) {
+                console.error('Login error:', error);
+                showAuthError(getAuthErrorMessage(error));
+            }
+
+            $('loginBtn').disabled = false;
+        }
+
+        async function handleRegister() {
+            const email = $('registerEmail').value.trim();
+            const password = $('registerPassword').value;
+            const confirmPassword = $('registerConfirmPassword').value;
+
+            if (!email) {
+                showAuthError(t('emailRequired'));
+                return;
+            }
+            if (!password) {
+                showAuthError(t('passwordRequired'));
+                return;
+            }
+            if (password.length < 6) {
+                showAuthError(t('passwordTooShort'));
+                return;
+            }
+            if (password !== confirmPassword) {
+                showAuthError(t('passwordMismatch'));
+                return;
+            }
+
+            $('registerBtn').disabled = true;
+
+            try {
+                await auth.createUserWithEmailAndPassword(email, password);
+                // 注册成功后会自动登录
+            } catch (error) {
+                console.error('Register error:', error);
+                showAuthError(getAuthErrorMessage(error));
+            }
+
+            $('registerBtn').disabled = false;
+        }
+
+        async function handleForgotPassword() {
+            const email = $('forgotEmail').value.trim();
+
+            if (!email) {
+                showAuthError(t('emailRequired'));
+                return;
+            }
+
+            try {
+                await auth.sendPasswordResetEmail(email);
+                showAuthSuccess(t('resetEmailSent'));
+            } catch (error) {
+                console.error('Forgot password error:', error);
+                showAuthError(getAuthErrorMessage(error));
+            }
+        }
+
+        async function handleLogout() {
+            try {
+                await auth.signOut();
+            } catch (error) {
+                console.error('Logout error:', error);
+            }
+        }
+
+        function showAuth() {
+            $('authSection').style.display = 'flex';
+            $('appSection').style.display = 'none';
+            chats = {};
+            currentChatId = null;
+        }
+
+        async function showApp() {
+            $('authSection').style.display = 'none';
+            $('appSection').style.display = 'block';
+
+            // 显示用户邮箱
+            $('userEmail').textContent = currentUser.email;
+
+            // 从 Firestore 加载聊天记录
+            await loadChatsFromFirestore();
+
+            if (!currentChatId) newChat();
+
+            // 从 Dify 服务器同步会话
+            loadConversationsFromServer();
+        }
+
+        // ========== Firestore 聊天记录 ==========
+        async function loadChatsFromFirestore() {
+            if (!currentUser) return;
+
+            try {
+                const snapshot = await db.collection('users').doc(currentUser.uid)
+                    .collection('chats').orderBy('createdAt', 'desc').get();
+
+                chats = {};
+                snapshot.forEach(doc => {
+                    chats[doc.id] = { id: doc.id, ...doc.data() };
+                });
+
+                const ids = Object.keys(chats);
+                if (ids.length > 0) {
+                    currentChatId = ids[0];
+                }
+
+                renderChatList();
+                if (currentChatId) renderCurrentChat();
+            } catch (error) {
+                console.error('Load chats error:', error);
+            }
+        }
+
+        async function saveChatToFirestore(chatId) {
+            if (!currentUser || !chats[chatId]) return;
+
+            try {
+                const chat = chats[chatId];
+                await db.collection('users').doc(currentUser.uid)
+                    .collection('chats').doc(chatId).set({
+                        title: chat.title,
+                        messages: chat.messages,
+                        conversationId: chat.conversationId || null,
+                        createdAt: chat.createdAt,
+                        updatedAt: new Date().toISOString()
+                    });
+            } catch (error) {
+                console.error('Save chat error:', error);
+            }
+        }
+
+        async function deleteChatFromFirestore(chatId) {
+            if (!currentUser) return;
+
+            try {
+                await db.collection('users').doc(currentUser.uid)
+                    .collection('chats').doc(chatId).delete();
+            } catch (error) {
+                console.error('Delete chat error:', error);
+            }
+        }
+
+        async function clearAllChatsFromFirestore() {
+            if (!currentUser) return;
+
+            try {
+                const snapshot = await db.collection('users').doc(currentUser.uid)
+                    .collection('chats').get();
+
+                const batch = db.batch();
+                snapshot.forEach(doc => {
+                    batch.delete(doc.ref);
+                });
+                await batch.commit();
+            } catch (error) {
+                console.error('Clear chats error:', error);
+            }
+        }
 
         // ========== 多语言函数 ==========
         function t(key, params = {}) {
@@ -1188,8 +1739,18 @@
 
         // ========== 事件绑定 ==========
         function setupEventListeners() {
-            $('passwordInput').addEventListener('keypress', e => { if (e.key === 'Enter') checkPassword(); });
-            $('loginBtn').addEventListener('click', checkPassword);
+            // 登录表单回车
+            $('loginEmail').addEventListener('keypress', e => { if (e.key === 'Enter') $('loginPassword').focus(); });
+            $('loginPassword').addEventListener('keypress', e => { if (e.key === 'Enter') handleLogin(); });
+
+            // 注册表单回车
+            $('registerEmail').addEventListener('keypress', e => { if (e.key === 'Enter') $('registerPassword').focus(); });
+            $('registerPassword').addEventListener('keypress', e => { if (e.key === 'Enter') $('registerConfirmPassword').focus(); });
+            $('registerConfirmPassword').addEventListener('keypress', e => { if (e.key === 'Enter') handleRegister(); });
+
+            // 忘记密码回车
+            $('forgotEmail').addEventListener('keypress', e => { if (e.key === 'Enter') handleForgotPassword(); });
+
             $('menuToggle').addEventListener('click', toggleSidebar);
             $('sidebarOverlay').addEventListener('click', toggleSidebar);
             $('newChatBtn').addEventListener('click', newChat);
@@ -1210,26 +1771,6 @@
                     adjustTextareaHeight();
                 });
             });
-        }
-
-        // ========== 密码验证 ==========
-        function checkPassword() {
-            const input = $('passwordInput');
-            if (input.value === CONFIG.PASSWORD) {
-                sessionStorage.setItem('authenticated', 'true');
-                showApp();
-            } else {
-                $('errorMsg').style.display = 'block';
-                input.value = '';
-                input.focus();
-            }
-        }
-
-        function showApp() {
-            $('loginSection').style.display = 'none';
-            $('appSection').style.display = 'block';
-            if (!currentChatId) newChat();
-            loadConversationsFromServer();
         }
 
         // ========== 主题切换 ==========
@@ -1273,25 +1814,10 @@
                 createdAt: new Date().toISOString()
             };
             currentChatId = id;
-            saveChats();
+            saveChatToFirestore(id);
             renderChatList();
             renderCurrentChat();
             closeSidebar();
-        }
-
-        function loadChats() {
-            const saved = localStorage.getItem('chats');
-            if (saved) {
-                chats = JSON.parse(saved);
-                const ids = Object.keys(chats);
-                if (ids.length > 0) currentChatId = ids[ids.length - 1];
-            }
-            renderChatList();
-            if (currentChatId) renderCurrentChat();
-        }
-
-        function saveChats() {
-            localStorage.setItem('chats', JSON.stringify(chats));
         }
 
         function selectChat(id) {
@@ -1316,22 +1842,25 @@
                 } catch (e) { console.error('Delete conversation error:', e); }
             }
 
+            // 从 Firestore 删除
+            await deleteChatFromFirestore(id);
+
             delete chats[id];
             if (currentChatId === id) {
                 const ids = Object.keys(chats);
-                currentChatId = ids.length > 0 ? ids[ids.length - 1] : null;
+                currentChatId = ids.length > 0 ? ids[0] : null;
             }
-            saveChats();
             renderChatList();
             if (currentChatId) renderCurrentChat();
             else newChat();
         }
 
-        function clearAllChats() {
+        async function clearAllChats() {
             if (!confirm(t('clearConfirm'))) return;
+
+            await clearAllChatsFromFirestore();
             chats = {};
             currentChatId = null;
-            localStorage.removeItem('chats');
             newChat();
         }
 
@@ -1402,7 +1931,7 @@
             const chat = chats[renamingChatId];
             chat.title = newName;
 
-            // 同步到服务器
+            // 同步到 Dify 服务器
             if (chat.conversationId) {
                 try {
                     await fetch(`${CONFIG.API_BASE_URL}/conversations/${chat.conversationId}/name`, {
@@ -1411,12 +1940,14 @@
                             'Authorization': `Bearer ${CONFIG.API_KEY}`,
                             'Content-Type': 'application/json'
                         },
-                        body: JSON.stringify({ name: newName, user: userId })
+                        body: JSON.stringify({ name: newName, user: currentUser.uid })
                     });
                 } catch (e) { console.error('Rename error:', e); }
             }
 
-            saveChats();
+            // 保存到 Firestore
+            await saveChatToFirestore(renamingChatId);
+
             renderChatList();
             if (renamingChatId === currentChatId) {
                 $('currentChatTitle').textContent = newName;
@@ -1541,7 +2072,7 @@
             }
 
             chat.messages.push(userMessage);
-            saveChats();
+            await saveChatToFirestore(currentChatId);
 
             input.value = '';
             input.style.height = 'auto';
@@ -1593,7 +2124,7 @@
                         inputs: {},
                         query: queryText,
                         response_mode: 'blocking',
-                        user: userId,
+                        user: currentUser.uid,
                         conversation_id: chat.conversationId || ''
                     }),
                     signal: abortController.signal
@@ -1617,7 +2148,7 @@
                 // 获取建议问题
                 if (data.message_id) {
                     try {
-                        const suggestRes = await fetch(`${CONFIG.API_BASE_URL}/messages/${data.message_id}/suggested?user=${userId}`, {
+                        const suggestRes = await fetch(`${CONFIG.API_BASE_URL}/messages/${data.message_id}/suggested?user=${currentUser.uid}`, {
                             headers: { 'Authorization': `Bearer ${CONFIG.API_KEY}` }
                         });
                         const suggestData = await suggestRes.json();
@@ -1628,7 +2159,7 @@
                 }
 
                 chat.messages.push(assistantMessage);
-                saveChats();
+                await saveChatToFirestore(currentChatId);
                 renderChatList();
 
                 area.innerHTML += createMessageHTML(assistantMessage, chat.messages.length - 1);
@@ -1644,7 +2175,7 @@
 
                     const errorMessage = { role: 'assistant', content: t('networkError') };
                     chat.messages.push(errorMessage);
-                    saveChats();
+                    await saveChatToFirestore(currentChatId);
                     area.innerHTML += createMessageHTML(errorMessage, chat.messages.length - 1);
                 }
             }
@@ -1681,7 +2212,7 @@
                         'Authorization': `Bearer ${CONFIG.API_KEY}`,
                         'Content-Type': 'application/json'
                     },
-                    body: JSON.stringify({ rating, user: userId })
+                    body: JSON.stringify({ rating, user: currentUser.uid })
                 });
 
                 // 更新本地状态
@@ -1689,7 +2220,7 @@
                 const msg = chat.messages.find(m => m.messageId === messageId);
                 if (msg) {
                     msg.feedback = rating;
-                    saveChats();
+                    await saveChatToFirestore(currentChatId);
                 }
 
                 // 更新 UI
@@ -1713,8 +2244,10 @@
 
         // ========== 加载服务器会话 ==========
         async function loadConversationsFromServer() {
+            if (!currentUser) return;
+
             try {
-                const res = await fetch(`${CONFIG.API_BASE_URL}/conversations?user=${userId}&limit=20`, {
+                const res = await fetch(`${CONFIG.API_BASE_URL}/conversations?user=${currentUser.uid}&limit=20`, {
                     headers: { 'Authorization': `Bearer ${CONFIG.API_KEY}` }
                 });
                 const data = await res.json();
@@ -1731,9 +2264,9 @@
                                 messages: [],
                                 createdAt: new Date(conv.created_at * 1000).toISOString()
                             };
+                            await saveChatToFirestore(id);
                         }
                     }
-                    saveChats();
                     renderChatList();
                 }
             } catch (e) {
@@ -1741,7 +2274,7 @@
             }
         }
 
-        function regenerate() {
+        async function regenerate() {
             const chat = chats[currentChatId];
             if (chat.messages.length >= 2) {
                 chat.messages.pop();
@@ -1750,7 +2283,7 @@
                 attachedFiles = lastUserMsg.attachments || [];
                 renderAttachments();
                 chat.messages.pop();
-                saveChats();
+                await saveChatToFirestore(currentChatId);
                 sendMessage();
             }
         }
