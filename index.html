@@ -2,7 +2,7 @@
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>AI 提示词生成器</title>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark.min.css" rel="stylesheet">
@@ -10,1010 +10,1580 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
     <style>
         :root {
-            --bg-primary: #0f0f23;
-            --bg-secondary: #1a1a2e;
-            --bg-card: #16213e;
+            --bg-primary: #1a1a2e;
+            --bg-secondary: #16213e;
+            --bg-sidebar: #0f0f1a;
+            --bg-card: #1e1e32;
+            --bg-input: #252540;
             --text-primary: #e8e8e8;
             --text-secondary: #a0a0a0;
+            --text-muted: #6b6b80;
             --accent: #667eea;
             --accent-hover: #5a6fd6;
+            --accent-light: rgba(102, 126, 234, 0.1);
             --gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             --border: #2d2d44;
             --success: #10b981;
             --error: #ef4444;
             --warning: #f59e0b;
+            --shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
         }
 
         [data-theme="light"] {
-            --bg-primary: #f5f5f7;
+            --bg-primary: #f0f2f5;
             --bg-secondary: #ffffff;
+            --bg-sidebar: #ffffff;
             --bg-card: #ffffff;
+            --bg-input: #f5f5f7;
             --text-primary: #1a1a2e;
-            --text-secondary: #666666;
-            --border: #e0e0e0;
+            --text-secondary: #4a4a5a;
+            --text-muted: #8b8b9a;
+            --border: #e0e0e8;
+            --accent-light: rgba(102, 126, 234, 0.08);
+            --shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
         }
 
-        * { margin: 0; padding: 0; box-sizing: border-box; }
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
 
         body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'PingFang SC', 'Microsoft YaHei', sans-serif;
             background: var(--bg-primary);
             color: var(--text-primary);
             min-height: 100vh;
-            transition: all 0.3s ease;
+            overflow: hidden;
         }
 
-        /* 登录页面 */
-        .login-page {
-            min-height: 100vh;
+        /* ========== 登录页面 ========== */
+        .login-container {
             display: flex;
             justify-content: center;
             align-items: center;
-            background: var(--gradient);
+            min-height: 100vh;
             padding: 20px;
         }
 
         .login-box {
             background: var(--bg-card);
-            border-radius: 24px;
-            padding: 48px;
+            border-radius: 16px;
+            padding: 40px;
             width: 100%;
-            max-width: 420px;
-            box-shadow: 0 25px 80px rgba(0,0,0,0.4);
+            max-width: 400px;
+            box-shadow: var(--shadow);
+            border: 1px solid var(--border);
+        }
+
+        .login-header {
             text-align: center;
+            margin-bottom: 30px;
         }
 
-        .login-logo {
-            width: 80px;
-            height: 80px;
-            background: var(--gradient);
-            border-radius: 20px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            margin: 0 auto 24px;
-            font-size: 36px;
-            color: white;
-        }
-
-        .login-title {
+        .login-header h1 {
             font-size: 28px;
-            font-weight: 700;
-            margin-bottom: 8px;
             background: var(--gradient);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
             background-clip: text;
+            margin-bottom: 8px;
         }
 
-        .login-subtitle {
+        .login-header p {
             color: var(--text-secondary);
-            margin-bottom: 32px;
             font-size: 14px;
-        }
-
-        .input-wrapper {
-            position: relative;
-            margin-bottom: 20px;
-        }
-
-        .input-wrapper i {
-            position: absolute;
-            left: 16px;
-            top: 50%;
-            transform: translateY(-50%);
-            color: var(--text-secondary);
         }
 
         .login-input {
             width: 100%;
-            padding: 16px 16px 16px 48px;
+            padding: 14px 18px;
             border: 2px solid var(--border);
-            border-radius: 12px;
-            background: var(--bg-secondary);
-            color: var(--text-primary);
+            border-radius: 10px;
             font-size: 16px;
-            transition: all 0.3s;
+            background: var(--bg-input);
+            color: var(--text-primary);
+            margin-bottom: 20px;
+            transition: border-color 0.3s;
         }
 
         .login-input:focus {
             outline: none;
             border-color: var(--accent);
-            box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.2);
         }
 
-        .error-toast {
-            background: var(--error);
-            color: white;
-            padding: 12px 16px;
-            border-radius: 8px;
-            margin-bottom: 16px;
-            display: none;
-            font-size: 14px;
-        }
-
-        .btn {
-            padding: 16px 32px;
+        .login-btn {
+            width: 100%;
+            padding: 14px;
+            background: var(--gradient);
             border: none;
-            border-radius: 12px;
+            border-radius: 10px;
+            color: white;
             font-size: 16px;
             font-weight: 600;
             cursor: pointer;
-            transition: all 0.3s;
-            display: inline-flex;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .login-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+        }
+
+        .error-msg {
+            color: var(--error);
+            font-size: 14px;
+            margin-bottom: 15px;
+            display: none;
+            text-align: center;
+        }
+
+        /* ========== 主应用布局 ========== */
+        .app-container {
+            display: none;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        .app-layout {
+            display: flex;
+            height: 100%;
+        }
+
+        /* ========== 左侧边栏 - 对话历史 ========== */
+        .sidebar {
+            width: 280px;
+            background: var(--bg-sidebar);
+            border-right: 1px solid var(--border);
+            display: flex;
+            flex-direction: column;
+            flex-shrink: 0;
+            transition: transform 0.3s ease;
+        }
+
+        .sidebar-header {
+            padding: 20px;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .sidebar-title {
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .new-chat-btn {
+            width: 36px;
+            height: 36px;
+            border-radius: 8px;
+            border: 1px solid var(--border);
+            background: transparent;
+            color: var(--text-primary);
+            cursor: pointer;
+            display: flex;
             align-items: center;
             justify-content: center;
-            gap: 8px;
+            transition: all 0.2s;
         }
 
-        .btn-primary {
-            background: var(--gradient);
-            color: white;
-            width: 100%;
+        .new-chat-btn:hover {
+            background: var(--accent-light);
+            border-color: var(--accent);
+            color: var(--accent);
         }
 
-        .btn-primary:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4);
+        .chat-list {
+            flex: 1;
+            overflow-y: auto;
+            padding: 10px;
         }
 
-        .btn-primary:disabled {
-            opacity: 0.6;
-            cursor: not-allowed;
-            transform: none;
-        }
-
-        /* 主应用页面 */
-        .app-page {
-            display: none;
-            min-height: 100vh;
-        }
-
-        .app-header {
-            background: var(--bg-secondary);
-            border-bottom: 1px solid var(--border);
-            padding: 16px 24px;
+        .chat-item {
+            padding: 12px 15px;
+            border-radius: 10px;
+            cursor: pointer;
+            margin-bottom: 5px;
+            transition: background 0.2s;
             display: flex;
             align-items: center;
+            gap: 10px;
+        }
+
+        .chat-item:hover {
+            background: var(--accent-light);
+        }
+
+        .chat-item.active {
+            background: var(--accent-light);
+            border: 1px solid var(--accent);
+        }
+
+        .chat-item i {
+            color: var(--text-muted);
+            font-size: 14px;
+        }
+
+        .chat-item-content {
+            flex: 1;
+            overflow: hidden;
+        }
+
+        .chat-item-title {
+            font-size: 14px;
+            color: var(--text-primary);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .chat-item-time {
+            font-size: 11px;
+            color: var(--text-muted);
+            margin-top: 3px;
+        }
+
+        .chat-item-delete {
+            opacity: 0;
+            padding: 5px;
+            border: none;
+            background: transparent;
+            color: var(--text-muted);
+            cursor: pointer;
+            border-radius: 5px;
+            transition: all 0.2s;
+        }
+
+        .chat-item:hover .chat-item-delete {
+            opacity: 1;
+        }
+
+        .chat-item-delete:hover {
+            color: var(--error);
+            background: rgba(239, 68, 68, 0.1);
+        }
+
+        /* ========== 主聊天区域 ========== */
+        .main-area {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            min-width: 0;
+            position: relative;
+        }
+
+        /* 顶部工具栏 */
+        .top-bar {
+            height: 60px;
+            padding: 0 20px;
+            display: flex;
             justify-content: space-between;
-            position: sticky;
-            top: 0;
-            z-index: 100;
-        }
-
-        .logo {
-            display: flex;
             align-items: center;
-            gap: 12px;
+            border-bottom: 1px solid var(--border);
+            background: var(--bg-secondary);
+            flex-shrink: 0;
         }
 
-        .logo-icon {
+        .menu-toggle {
+            display: none;
             width: 40px;
             height: 40px;
-            background: var(--gradient);
+            border: none;
+            background: transparent;
+            color: var(--text-primary);
+            font-size: 20px;
+            cursor: pointer;
+            border-radius: 8px;
+        }
+
+        .menu-toggle:hover {
+            background: var(--accent-light);
+        }
+
+        .top-bar-title {
+            font-size: 16px;
+            font-weight: 600;
+        }
+
+        .top-bar-actions {
+            display: flex;
+            gap: 10px;
+        }
+
+        .icon-btn {
+            width: 40px;
+            height: 40px;
+            border-radius: 10px;
+            border: 1px solid var(--border);
+            background: transparent;
+            color: var(--text-primary);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+            transition: all 0.2s;
+        }
+
+        .icon-btn:hover {
+            background: var(--accent-light);
+            border-color: var(--accent);
+            color: var(--accent);
+        }
+
+        /* 对话内容区 */
+        .chat-area {
+            flex: 1;
+            overflow-y: auto;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .welcome-message {
+            text-align: center;
+            padding: 60px 20px;
+            color: var(--text-secondary);
+        }
+
+        .welcome-message h2 {
+            font-size: 24px;
+            color: var(--text-primary);
+            margin-bottom: 10px;
+        }
+
+        .welcome-message p {
+            font-size: 14px;
+            max-width: 400px;
+            margin: 0 auto;
+        }
+
+        /* 消息气泡 */
+        .message {
+            display: flex;
+            gap: 15px;
+            max-width: 85%;
+            animation: fadeIn 0.3s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .message.user {
+            align-self: flex-end;
+            flex-direction: row-reverse;
+        }
+
+        .message-avatar {
+            width: 36px;
+            height: 36px;
             border-radius: 10px;
             display: flex;
             align-items: center;
             justify-content: center;
+            font-size: 14px;
+            flex-shrink: 0;
+        }
+
+        .message.user .message-avatar {
+            background: var(--gradient);
             color: white;
-            font-size: 20px;
         }
 
-        .logo-text {
-            font-size: 20px;
-            font-weight: 700;
-        }
-
-        .header-actions {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-        }
-
-        .theme-toggle {
-            width: 44px;
-            height: 44px;
-            border-radius: 12px;
-            border: 1px solid var(--border);
+        .message.assistant .message-avatar {
             background: var(--bg-card);
-            color: var(--text-primary);
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 18px;
-            transition: all 0.3s;
+            border: 1px solid var(--border);
+            color: var(--accent);
         }
 
-        .theme-toggle:hover {
-            background: var(--accent);
-            color: white;
-            border-color: var(--accent);
-        }
-
-        .main-content {
-            max-width: 900px;
-            margin: 0 auto;
-            padding: 32px 24px;
-        }
-
-        .card {
+        .message-content {
             background: var(--bg-card);
             border: 1px solid var(--border);
             border-radius: 16px;
-            padding: 24px;
-            margin-bottom: 24px;
+            padding: 15px 18px;
+            max-width: 100%;
         }
 
-        .card-header {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            margin-bottom: 20px;
-        }
-
-        .card-icon {
-            width: 44px;
-            height: 44px;
-            background: var(--gradient);
-            border-radius: 12px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: white;
-            font-size: 18px;
-        }
-
-        .card-title {
-            font-size: 18px;
-            font-weight: 600;
-        }
-
-        .card-subtitle {
-            font-size: 13px;
-            color: var(--text-secondary);
-        }
-
-        /* 文件上传区域 */
-        .upload-zone {
-            border: 2px dashed var(--border);
-            border-radius: 12px;
-            padding: 32px;
-            text-align: center;
-            cursor: pointer;
-            transition: all 0.3s;
-            margin-bottom: 16px;
-        }
-
-        .upload-zone:hover, .upload-zone.drag-over {
+        .message.user .message-content {
+            background: var(--accent);
             border-color: var(--accent);
-            background: rgba(102, 126, 234, 0.1);
+            color: white;
         }
 
-        .upload-icon {
-            font-size: 48px;
-            color: var(--accent);
-            margin-bottom: 16px;
+        .message-content p {
+            line-height: 1.6;
+            margin-bottom: 10px;
         }
 
-        .upload-text {
-            font-size: 16px;
-            margin-bottom: 8px;
+        .message-content p:last-child {
+            margin-bottom: 0;
         }
 
-        .upload-hint {
+        .message-content pre {
+            background: var(--bg-primary);
+            border-radius: 8px;
+            padding: 15px;
+            overflow-x: auto;
+            margin: 10px 0;
+        }
+
+        .message-content code {
+            font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
             font-size: 13px;
-            color: var(--text-secondary);
         }
 
-        .file-preview {
+        .message-content ul, .message-content ol {
+            padding-left: 20px;
+            margin: 10px 0;
+        }
+
+        .message-content li {
+            margin: 5px 0;
+            line-height: 1.6;
+        }
+
+        /* 结果操作栏 */
+        .result-actions {
+            display: flex;
+            gap: 8px;
+            margin-top: 12px;
+            padding-top: 12px;
+            border-top: 1px solid var(--border);
+        }
+
+        .result-btn {
+            padding: 6px 12px;
+            border-radius: 6px;
+            border: 1px solid var(--border);
+            background: transparent;
+            color: var(--text-secondary);
+            font-size: 12px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            transition: all 0.2s;
+        }
+
+        .result-btn:hover {
+            background: var(--accent-light);
+            border-color: var(--accent);
+            color: var(--accent);
+        }
+
+        .result-btn.copied {
+            background: var(--success);
+            border-color: var(--success);
+            color: white;
+        }
+
+        /* 用户消息中的附件 */
+        .message-attachments {
             display: flex;
             flex-wrap: wrap;
-            gap: 12px;
-            margin-top: 16px;
+            gap: 8px;
+            margin-bottom: 10px;
         }
 
-        .file-item {
+        .attachment-preview {
+            max-width: 200px;
+            max-height: 150px;
+            border-radius: 8px;
+            object-fit: cover;
+        }
+
+        .attachment-file {
             display: flex;
             align-items: center;
             gap: 8px;
-            background: var(--bg-secondary);
             padding: 8px 12px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 8px;
+            font-size: 12px;
+        }
+
+        /* ========== 底部输入区 ========== */
+        .input-area {
+            padding: 15px 20px 20px;
+            background: var(--bg-secondary);
+            border-top: 1px solid var(--border);
+        }
+
+        /* 附件预览区 */
+        .attachments-preview {
+            display: none;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-bottom: 12px;
+            padding: 12px;
+            background: var(--bg-card);
+            border-radius: 12px;
+            border: 1px solid var(--border);
+        }
+
+        .attachments-preview.has-files {
+            display: flex;
+        }
+
+        .preview-item {
+            position: relative;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 12px;
+            background: var(--bg-input);
             border-radius: 8px;
             font-size: 13px;
         }
 
-        .file-item img {
-            width: 32px;
-            height: 32px;
+        .preview-item img {
+            width: 40px;
+            height: 40px;
             object-fit: cover;
-            border-radius: 4px;
+            border-radius: 6px;
         }
 
-        .file-remove {
-            color: var(--error);
-            cursor: pointer;
-            padding: 4px;
+        .preview-item .file-icon {
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: var(--accent-light);
+            border-radius: 6px;
+            color: var(--accent);
         }
 
-        /* 输入区域 */
-        .input-section {
-            position: relative;
+        .preview-item .file-name {
+            max-width: 150px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
         }
 
-        .main-textarea {
-            width: 100%;
-            min-height: 150px;
-            padding: 16px;
-            padding-right: 60px;
-            border: 2px solid var(--border);
-            border-radius: 12px;
-            background: var(--bg-secondary);
-            color: var(--text-primary);
-            font-size: 15px;
-            line-height: 1.6;
-            resize: vertical;
-            transition: all 0.3s;
-        }
-
-        .main-textarea:focus {
-            outline: none;
-            border-color: var(--accent);
-        }
-
-        .main-textarea::placeholder {
-            color: var(--text-secondary);
-        }
-
-        .voice-btn {
+        .preview-item .remove-btn {
             position: absolute;
-            right: 12px;
-            bottom: 12px;
-            width: 44px;
-            height: 44px;
+            top: -6px;
+            right: -6px;
+            width: 20px;
+            height: 20px;
             border-radius: 50%;
             border: none;
-            background: var(--bg-card);
-            color: var(--text-secondary);
+            background: var(--error);
+            color: white;
+            font-size: 10px;
             cursor: pointer;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 18px;
-            transition: all 0.3s;
         }
 
-        .voice-btn:hover {
-            background: var(--accent);
-            color: white;
+        /* 输入框容器 */
+        .input-container {
+            display: flex;
+            gap: 12px;
+            align-items: flex-end;
         }
 
-        .voice-btn.recording {
+        .input-wrapper {
+            flex: 1;
+            position: relative;
+            display: flex;
+            align-items: flex-end;
+            background: var(--bg-card);
+            border: 2px solid var(--border);
+            border-radius: 16px;
+            padding: 8px;
+            transition: border-color 0.3s;
+        }
+
+        .input-wrapper:focus-within {
+            border-color: var(--accent);
+        }
+
+        .input-actions-left {
+            display: flex;
+            gap: 5px;
+            padding: 4px;
+        }
+
+        .input-action-btn {
+            width: 36px;
+            height: 36px;
+            border-radius: 10px;
+            border: none;
+            background: transparent;
+            color: var(--text-muted);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+            transition: all 0.2s;
+        }
+
+        .input-action-btn:hover {
+            background: var(--accent-light);
+            color: var(--accent);
+        }
+
+        .input-action-btn.recording {
             background: var(--error);
             color: white;
-            animation: pulse 1s infinite;
+            animation: pulse 1.5s infinite;
         }
 
         @keyframes pulse {
             0%, 100% { transform: scale(1); }
-            50% { transform: scale(1.1); }
+            50% { transform: scale(1.05); }
         }
 
-        .action-bar {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-top: 16px;
-        }
-
-        .input-tips {
-            font-size: 13px;
-            color: var(--text-secondary);
-        }
-
-        .btn-generate {
-            padding: 14px 28px;
-        }
-
-        /* 结果区域 */
-        .result-section {
-            display: none;
-        }
-
-        .result-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 16px;
-        }
-
-        .result-actions {
-            display: flex;
-            gap: 8px;
-        }
-
-        .btn-icon {
-            width: 40px;
-            height: 40px;
-            border-radius: 10px;
-            border: 1px solid var(--border);
-            background: var(--bg-secondary);
-            color: var(--text-primary);
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            transition: all 0.3s;
-        }
-
-        .btn-icon:hover {
-            background: var(--accent);
-            color: white;
-            border-color: var(--accent);
-        }
-
-        .result-box {
-            background: var(--bg-secondary);
-            border: 1px solid var(--border);
-            border-radius: 12px;
-            overflow: hidden;
-        }
-
-        .result-toolbar {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 12px 16px;
-            background: var(--bg-primary);
-            border-bottom: 1px solid var(--border);
-        }
-
-        .result-label {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            font-size: 13px;
-            color: var(--text-secondary);
-        }
-
-        .result-label i {
-            color: var(--success);
-        }
-
-        .copy-btn {
-            display: flex;
-            align-items: center;
-            gap: 6px;
-            padding: 8px 16px;
-            background: var(--success);
-            color: white;
+        #userInput {
+            flex: 1;
             border: none;
-            border-radius: 8px;
-            font-size: 13px;
-            font-weight: 500;
-            cursor: pointer;
-            transition: all 0.3s;
+            background: transparent;
+            color: var(--text-primary);
+            font-size: 15px;
+            line-height: 1.5;
+            padding: 8px 12px;
+            resize: none;
+            min-height: 24px;
+            max-height: 200px;
+            outline: none;
+            font-family: inherit;
         }
 
-        .copy-btn:hover {
-            background: #0da271;
+        #userInput::placeholder {
+            color: var(--text-muted);
         }
 
-        .result-content {
-            padding: 20px;
-            font-size: 14px;
-            line-height: 1.8;
-            max-height: 500px;
-            overflow-y: auto;
-        }
-
-        .result-content pre {
-            background: var(--bg-primary);
-            padding: 16px;
-            border-radius: 8px;
-            overflow-x: auto;
-            margin: 12px 0;
-        }
-
-        .result-content code {
-            font-family: 'Fira Code', 'Consolas', monospace;
-            font-size: 13px;
-        }
-
-        .result-content p {
-            margin-bottom: 12px;
-        }
-
-        .result-content ul, .result-content ol {
-            margin-left: 20px;
-            margin-bottom: 12px;
-        }
-
-        .result-content h1, .result-content h2, .result-content h3 {
-            margin: 16px 0 8px;
-            color: var(--accent);
-        }
-
-        /* 加载状态 */
-        .loading-overlay {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: rgba(0,0,0,0.7);
-            z-index: 1000;
-            justify-content: center;
-            align-items: center;
-        }
-
-        .loading-box {
-            background: var(--bg-card);
-            padding: 40px 60px;
-            border-radius: 16px;
-            text-align: center;
-        }
-
-        .loading-spinner {
-            width: 50px;
-            height: 50px;
-            border: 4px solid var(--border);
-            border-top-color: var(--accent);
-            border-radius: 50%;
-            animation: spin 1s linear infinite;
-            margin: 0 auto 20px;
-        }
-
-        @keyframes spin {
-            to { transform: rotate(360deg); }
-        }
-
-        .loading-text {
-            font-size: 16px;
-            color: var(--text-secondary);
-        }
-
-        /* 提示框 */
-        .toast {
-            position: fixed;
-            bottom: 24px;
-            right: 24px;
-            padding: 16px 24px;
-            background: var(--success);
+        .send-btn {
+            width: 48px;
+            height: 48px;
+            border-radius: 14px;
+            border: none;
+            background: var(--gradient);
             color: white;
-            border-radius: 12px;
-            display: none;
+            cursor: pointer;
+            display: flex;
             align-items: center;
-            gap: 10px;
-            font-size: 14px;
-            box-shadow: 0 10px 40px rgba(0,0,0,0.3);
-            z-index: 1001;
+            justify-content: center;
+            font-size: 18px;
+            transition: transform 0.2s, box-shadow 0.2s;
+            flex-shrink: 0;
         }
 
-        /* 响应式 */
-        @media (max-width: 640px) {
-            .login-box { padding: 32px 24px; }
-            .main-content { padding: 16px; }
-            .card { padding: 16px; }
-            .upload-zone { padding: 24px; }
-            .action-bar { flex-direction: column; gap: 12px; }
-            .btn-generate { width: 100%; }
+        .send-btn:hover:not(:disabled) {
+            transform: scale(1.05);
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
         }
 
-        /* 隐藏文件输入 */
-        .hidden-input { display: none; }
+        .send-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        /* 拖拽上传覆盖层 */
+        .drop-overlay {
+            display: none;
+            position: absolute;
+            inset: 0;
+            background: rgba(102, 126, 234, 0.95);
+            z-index: 100;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 18px;
+            border-radius: 16px;
+        }
+
+        .drop-overlay.active {
+            display: flex;
+        }
+
+        .drop-overlay i {
+            font-size: 48px;
+            margin-bottom: 15px;
+        }
+
+        /* 隐藏的文件输入 */
+        #fileInput {
+            display: none;
+        }
+
+        /* ========== 移动端适配 ========== */
+        @media (max-width: 768px) {
+            .sidebar {
+                position: fixed;
+                left: 0;
+                top: 0;
+                bottom: 0;
+                z-index: 200;
+                transform: translateX(-100%);
+                box-shadow: var(--shadow);
+            }
+
+            .sidebar.open {
+                transform: translateX(0);
+            }
+
+            .sidebar-overlay {
+                display: none;
+                position: fixed;
+                inset: 0;
+                background: rgba(0, 0, 0, 0.5);
+                z-index: 199;
+            }
+
+            .sidebar-overlay.open {
+                display: block;
+            }
+
+            .menu-toggle {
+                display: flex;
+            }
+
+            .message {
+                max-width: 95%;
+            }
+
+            .input-container {
+                gap: 8px;
+            }
+
+            .input-wrapper {
+                padding: 6px;
+            }
+
+            .input-action-btn {
+                width: 32px;
+                height: 32px;
+            }
+
+            .send-btn {
+                width: 44px;
+                height: 44px;
+            }
+
+            .chat-area {
+                padding: 15px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .login-box {
+                padding: 30px 20px;
+            }
+
+            .top-bar-title {
+                font-size: 14px;
+            }
+
+            .preview-item .file-name {
+                max-width: 80px;
+            }
+        }
+
+        /* ========== 加载动画 ========== */
+        .typing-indicator {
+            display: flex;
+            gap: 5px;
+            padding: 15px 18px;
+        }
+
+        .typing-indicator span {
+            width: 8px;
+            height: 8px;
+            background: var(--text-muted);
+            border-radius: 50%;
+            animation: typing 1.4s infinite;
+        }
+
+        .typing-indicator span:nth-child(2) {
+            animation-delay: 0.2s;
+        }
+
+        .typing-indicator span:nth-child(3) {
+            animation-delay: 0.4s;
+        }
+
+        @keyframes typing {
+            0%, 60%, 100% { transform: translateY(0); }
+            30% { transform: translateY(-5px); }
+        }
+
+        /* 滚动条样式 */
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: var(--border);
+            border-radius: 3px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: var(--text-muted);
+        }
     </style>
 </head>
 <body>
     <!-- 登录页面 -->
-    <div class="login-page" id="loginPage">
+    <div class="login-container" id="loginSection">
         <div class="login-box">
-            <div class="login-logo">
-                <i class="fas fa-wand-magic-sparkles"></i>
+            <div class="login-header">
+                <h1><i class="fas fa-wand-magic-sparkles"></i> AI 提示词生成器</h1>
+                <p>输入密码以开始使用</p>
             </div>
-            <h1 class="login-title">AI 提示词生成器</h1>
-            <p class="login-subtitle">专业的 Prompt 工程助手，助你释放 AI 潜能</p>
-
-            <div class="error-toast" id="errorToast">
-                <i class="fas fa-exclamation-circle"></i> 密码错误，请重试
-            </div>
-
-            <div class="input-wrapper">
-                <i class="fas fa-lock"></i>
-                <input type="password" class="login-input" id="passwordInput" placeholder="请输入访问密码" onkeypress="if(event.key==='Enter')checkPassword()">
-            </div>
-
-            <button class="btn btn-primary" onclick="checkPassword()">
+            <p class="error-msg" id="errorMsg">密码错误，请重试</p>
+            <input type="password" class="login-input" id="passwordInput" placeholder="请输入密码" onkeypress="if(event.key==='Enter')checkPassword()">
+            <button class="login-btn" onclick="checkPassword()">
                 <i class="fas fa-arrow-right"></i> 进入系统
             </button>
         </div>
     </div>
 
-    <!-- 主应用页面 -->
-    <div class="app-page" id="appPage">
-        <header class="app-header">
-            <div class="logo">
-                <div class="logo-icon">
-                    <i class="fas fa-wand-magic-sparkles"></i>
-                </div>
-                <span class="logo-text">Prompt Generator</span>
-            </div>
-            <div class="header-actions">
-                <button class="theme-toggle" onclick="toggleTheme()" title="切换主题">
-                    <i class="fas fa-moon" id="themeIcon"></i>
-                </button>
-            </div>
-        </header>
+    <!-- 主应用 -->
+    <div class="app-container" id="appSection">
+        <div class="app-layout">
+            <!-- 侧边栏遮罩 -->
+            <div class="sidebar-overlay" id="sidebarOverlay" onclick="toggleSidebar()"></div>
 
-        <main class="main-content">
-            <!-- 文件上传卡片 -->
-            <div class="card">
-                <div class="card-header">
-                    <div class="card-icon">
-                        <i class="fas fa-cloud-upload-alt"></i>
-                    </div>
-                    <div>
-                        <div class="card-title">上传附件</div>
-                        <div class="card-subtitle">支持图片、文档等文件，AI 将结合内容分析</div>
-                    </div>
-                </div>
-
-                <div class="upload-zone" id="uploadZone" onclick="document.getElementById('fileInput').click()">
-                    <div class="upload-icon">
-                        <i class="fas fa-file-upload"></i>
-                    </div>
-                    <div class="upload-text">点击或拖拽文件到此处上传</div>
-                    <div class="upload-hint">支持 JPG、PNG、PDF、TXT、DOC 等格式</div>
-                </div>
-                <input type="file" id="fileInput" class="hidden-input" multiple accept="image/*,.pdf,.txt,.doc,.docx" onchange="handleFileSelect(event)">
-
-                <div class="file-preview" id="filePreview"></div>
-            </div>
-
-            <!-- 输入卡片 -->
-            <div class="card">
-                <div class="card-header">
-                    <div class="card-icon">
-                        <i class="fas fa-keyboard"></i>
-                    </div>
-                    <div>
-                        <div class="card-title">描述你的需求</div>
-                        <div class="card-subtitle">详细描述你想要生成的提示词类型和用途</div>
-                    </div>
-                </div>
-
-                <div class="input-section">
-                    <textarea class="main-textarea" id="userInput" placeholder="例如：&#10;&#10;• 我想创建一个用于写产品文案的提示词&#10;• 帮我生成一个角色扮演的提示词模板&#10;• 我需要一个数据分析助手的系统提示词&#10;&#10;你也可以上传参考文件，AI 会结合分析..."></textarea>
-                    <button class="voice-btn" id="voiceBtn" onclick="toggleVoice()" title="语音输入">
-                        <i class="fas fa-microphone"></i>
+            <!-- 左侧边栏 -->
+            <aside class="sidebar" id="sidebar">
+                <div class="sidebar-header">
+                    <span class="sidebar-title">对话历史</span>
+                    <button class="new-chat-btn" onclick="newChat()" title="新建对话">
+                        <i class="fas fa-plus"></i>
                     </button>
                 </div>
+                <div class="chat-list" id="chatList">
+                    <!-- 对话历史项会动态添加 -->
+                </div>
+            </aside>
 
-                <div class="action-bar">
-                    <div class="input-tips">
-                        <i class="fas fa-lightbulb"></i> 提示：描述越详细，生成的提示词越精准
-                    </div>
-                    <button class="btn btn-primary btn-generate" id="generateBtn" onclick="generatePrompt()">
-                        <i class="fas fa-magic"></i> 生成提示词
+            <!-- 主区域 -->
+            <main class="main-area">
+                <!-- 顶部栏 -->
+                <header class="top-bar">
+                    <button class="menu-toggle" onclick="toggleSidebar()">
+                        <i class="fas fa-bars"></i>
                     </button>
-                </div>
-            </div>
-
-            <!-- 结果卡片 -->
-            <div class="card result-section" id="resultSection">
-                <div class="card-header">
-                    <div class="card-icon" style="background: linear-gradient(135deg, #10b981 0%, #059669 100%);">
-                        <i class="fas fa-check"></i>
-                    </div>
-                    <div>
-                        <div class="card-title">生成结果</div>
-                        <div class="card-subtitle">以下是为你定制的专业提示词</div>
-                    </div>
-                </div>
-
-                <div class="result-box">
-                    <div class="result-toolbar">
-                        <div class="result-label">
-                            <i class="fas fa-circle"></i> 可直接复制使用
-                        </div>
-                        <button class="copy-btn" onclick="copyResult()">
-                            <i class="fas fa-copy"></i> 复制全部
+                    <span class="top-bar-title" id="currentChatTitle">新对话</span>
+                    <div class="top-bar-actions">
+                        <button class="icon-btn" onclick="toggleTheme()" title="切换主题">
+                            <i class="fas fa-moon" id="themeIcon"></i>
                         </button>
                     </div>
-                    <div class="result-content" id="resultContent"></div>
-                </div>
-            </div>
-        </main>
-    </div>
+                </header>
 
-    <!-- 加载遮罩 -->
-    <div class="loading-overlay" id="loadingOverlay">
-        <div class="loading-box">
-            <div class="loading-spinner"></div>
-            <div class="loading-text">AI 正在为你生成专业提示词...</div>
+                <!-- 聊天区域 -->
+                <div class="chat-area" id="chatArea">
+                    <div class="welcome-message" id="welcomeMessage">
+                        <h2>👋 你好！</h2>
+                        <p>我是 AI 提示词生成助手，可以帮你生成高质量的提示词。输入你的需求，上传相关文件或图片，让我来帮你！</p>
+                    </div>
+                </div>
+
+                <!-- 输入区域 -->
+                <div class="input-area">
+                    <input type="file" id="fileInput" multiple accept="image/*,.pdf,.doc,.docx,.txt,.md,.json,.csv,.xlsx,.xls">
+
+                    <!-- 附件预览 -->
+                    <div class="attachments-preview" id="attachmentsPreview"></div>
+
+                    <!-- 输入框 -->
+                    <div class="input-container">
+                        <div class="input-wrapper" id="inputWrapper">
+                            <div class="drop-overlay" id="dropOverlay">
+                                <i class="fas fa-cloud-upload-alt"></i>
+                                <span>拖放文件到这里</span>
+                            </div>
+                            <div class="input-actions-left">
+                                <button class="input-action-btn" onclick="document.getElementById('fileInput').click()" title="上传文件">
+                                    <i class="fas fa-paperclip"></i>
+                                </button>
+                                <button class="input-action-btn" id="voiceBtn" onclick="toggleVoice()" title="语音输入">
+                                    <i class="fas fa-microphone"></i>
+                                </button>
+                            </div>
+                            <textarea id="userInput" placeholder="输入你的需求，或拖放图片到这里..." rows="1"></textarea>
+                        </div>
+                        <button class="send-btn" id="sendBtn" onclick="sendMessage()">
+                            <i class="fas fa-paper-plane"></i>
+                        </button>
+                    </div>
+                </div>
+            </main>
         </div>
     </div>
 
-    <!-- 提示框 -->
-    <div class="toast" id="toast">
-        <i class="fas fa-check-circle"></i>
-        <span id="toastText">已复制到剪贴板</span>
-    </div>
-
     <script>
-        // 配置
+        // ========== 配置 ==========
         const CONFIG = {
             PASSWORD: 'hs2026',
             API_BASE_URL: 'https://pro.aifunbox.com/v1',
             API_KEY: 'app-DkhgkE5HuA7JTvXG2P7huh7c'
         };
 
-        // 全局变量
-        let uploadedFiles = [];
+        // ========== 状态管理 ==========
+        let currentTheme = 'dark';
         let isRecording = false;
         let recognition = null;
-        let currentTheme = 'dark';
+        let currentChatId = null;
+        let chats = {};
+        let attachedFiles = [];
 
-        // 密码验证
+        // ========== 初始化 ==========
+        document.addEventListener('DOMContentLoaded', () => {
+            loadTheme();
+            loadChats();
+            setupTextarea();
+            setupDragAndDrop();
+            setupFileInput();
+
+            // 检查登录状态
+            if (sessionStorage.getItem('authenticated') === 'true') {
+                showApp();
+            }
+        });
+
+        // ========== 密码验证 ==========
         function checkPassword() {
-            const password = document.getElementById('passwordInput').value;
-            if (password === CONFIG.PASSWORD) {
-                document.getElementById('loginPage').style.display = 'none';
-                document.getElementById('appPage').style.display = 'block';
+            const input = document.getElementById('passwordInput');
+            if (input.value === CONFIG.PASSWORD) {
+                sessionStorage.setItem('authenticated', 'true');
+                showApp();
             } else {
-                const errorToast = document.getElementById('errorToast');
-                errorToast.style.display = 'block';
-                document.getElementById('passwordInput').value = '';
-                setTimeout(() => { errorToast.style.display = 'none'; }, 3000);
+                document.getElementById('errorMsg').style.display = 'block';
+                input.value = '';
+                input.focus();
             }
         }
 
-        // 主题切换
-        function toggleTheme() {
-            const body = document.body;
-            const icon = document.getElementById('themeIcon');
+        function showApp() {
+            document.getElementById('loginSection').style.display = 'none';
+            document.getElementById('appSection').style.display = 'block';
+            if (!currentChatId) {
+                newChat();
+            }
+        }
 
+        // ========== 主题切换 ==========
+        function toggleTheme() {
+            const icon = document.getElementById('themeIcon');
             if (currentTheme === 'dark') {
-                body.setAttribute('data-theme', 'light');
+                document.body.setAttribute('data-theme', 'light');
                 icon.className = 'fas fa-sun';
                 currentTheme = 'light';
             } else {
-                body.removeAttribute('data-theme');
+                document.body.removeAttribute('data-theme');
                 icon.className = 'fas fa-moon';
                 currentTheme = 'dark';
             }
+            localStorage.setItem('theme', currentTheme);
         }
 
-        // 文件拖拽
-        const uploadZone = document.getElementById('uploadZone');
-
-        uploadZone.addEventListener('dragover', (e) => {
-            e.preventDefault();
-            uploadZone.classList.add('drag-over');
-        });
-
-        uploadZone.addEventListener('dragleave', () => {
-            uploadZone.classList.remove('drag-over');
-        });
-
-        uploadZone.addEventListener('drop', (e) => {
-            e.preventDefault();
-            uploadZone.classList.remove('drag-over');
-            handleFiles(e.dataTransfer.files);
-        });
-
-        // 文件选择处理
-        function handleFileSelect(event) {
-            handleFiles(event.target.files);
-        }
-
-        function handleFiles(files) {
-            for (let file of files) {
-                if (uploadedFiles.length >= 5) {
-                    showToast('最多只能上传5个文件');
-                    break;
-                }
-
-                const fileObj = {
-                    file: file,
-                    name: file.name,
-                    type: file.type,
-                    preview: null
-                };
-
-                if (file.type.startsWith('image/')) {
-                    const reader = new FileReader();
-                    reader.onload = (e) => {
-                        fileObj.preview = e.target.result;
-                        renderFilePreview();
-                    };
-                    reader.readAsDataURL(file);
-                }
-
-                uploadedFiles.push(fileObj);
+        function loadTheme() {
+            const saved = localStorage.getItem('theme');
+            if (saved === 'light') {
+                toggleTheme();
             }
-            renderFilePreview();
         }
 
-        function renderFilePreview() {
-            const preview = document.getElementById('filePreview');
-            preview.innerHTML = uploadedFiles.map((f, i) => `
-                <div class="file-item">
-                    ${f.preview ? `<img src="${f.preview}" alt="${f.name}">` : '<i class="fas fa-file"></i>'}
-                    <span>${f.name.length > 15 ? f.name.substring(0, 12) + '...' : f.name}</span>
-                    <span class="file-remove" onclick="removeFile(${i})"><i class="fas fa-times"></i></span>
+        // ========== 侧边栏 ==========
+        function toggleSidebar() {
+            document.getElementById('sidebar').classList.toggle('open');
+            document.getElementById('sidebarOverlay').classList.toggle('open');
+        }
+
+        // ========== 对话管理 ==========
+        function newChat() {
+            const id = 'chat_' + Date.now();
+            chats[id] = {
+                id,
+                title: '新对话',
+                messages: [],
+                createdAt: new Date().toISOString()
+            };
+            currentChatId = id;
+            saveChats();
+            renderChatList();
+            renderCurrentChat();
+            // 移动端自动关闭侧边栏
+            if (window.innerWidth <= 768) {
+                document.getElementById('sidebar').classList.remove('open');
+                document.getElementById('sidebarOverlay').classList.remove('open');
+            }
+        }
+
+        function loadChats() {
+            const saved = localStorage.getItem('chats');
+            if (saved) {
+                chats = JSON.parse(saved);
+                const ids = Object.keys(chats);
+                if (ids.length > 0) {
+                    currentChatId = ids[ids.length - 1];
+                }
+            }
+            renderChatList();
+            if (currentChatId) {
+                renderCurrentChat();
+            }
+        }
+
+        function saveChats() {
+            localStorage.setItem('chats', JSON.stringify(chats));
+        }
+
+        function selectChat(id) {
+            currentChatId = id;
+            renderChatList();
+            renderCurrentChat();
+            // 移动端自动关闭侧边栏
+            if (window.innerWidth <= 768) {
+                document.getElementById('sidebar').classList.remove('open');
+                document.getElementById('sidebarOverlay').classList.remove('open');
+            }
+        }
+
+        function deleteChat(id, event) {
+            event.stopPropagation();
+            if (confirm('确定删除这个对话吗？')) {
+                delete chats[id];
+                if (currentChatId === id) {
+                    const ids = Object.keys(chats);
+                    currentChatId = ids.length > 0 ? ids[ids.length - 1] : null;
+                }
+                saveChats();
+                renderChatList();
+                if (currentChatId) {
+                    renderCurrentChat();
+                } else {
+                    newChat();
+                }
+            }
+        }
+
+        function renderChatList() {
+            const container = document.getElementById('chatList');
+            const sorted = Object.values(chats).sort((a, b) =>
+                new Date(b.createdAt) - new Date(a.createdAt)
+            );
+
+            container.innerHTML = sorted.map(chat => `
+                <div class="chat-item ${chat.id === currentChatId ? 'active' : ''}" onclick="selectChat('${chat.id}')">
+                    <i class="fas fa-message"></i>
+                    <div class="chat-item-content">
+                        <div class="chat-item-title">${escapeHtml(chat.title)}</div>
+                        <div class="chat-item-time">${formatTime(chat.createdAt)}</div>
+                    </div>
+                    <button class="chat-item-delete" onclick="deleteChat('${chat.id}', event)" title="删除">
+                        <i class="fas fa-trash"></i>
+                    </button>
                 </div>
             `).join('');
         }
 
-        function removeFile(index) {
-            uploadedFiles.splice(index, 1);
-            renderFilePreview();
+        function renderCurrentChat() {
+            const chat = chats[currentChatId];
+            if (!chat) return;
+
+            document.getElementById('currentChatTitle').textContent = chat.title;
+            const area = document.getElementById('chatArea');
+            const welcome = document.getElementById('welcomeMessage');
+
+            if (chat.messages.length === 0) {
+                welcome.style.display = 'block';
+                area.innerHTML = '';
+                area.appendChild(welcome);
+            } else {
+                welcome.style.display = 'none';
+                area.innerHTML = chat.messages.map(msg => createMessageHTML(msg)).join('');
+                area.scrollTop = area.scrollHeight;
+            }
         }
 
-        // 语音输入
-        function toggleVoice() {
-            const btn = document.getElementById('voiceBtn');
+        // ========== 消息处理 ==========
+        function createMessageHTML(msg) {
+            const avatar = msg.role === 'user'
+                ? '<i class="fas fa-user"></i>'
+                : '<i class="fas fa-robot"></i>';
 
-            if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
-                showToast('您的浏览器不支持语音输入');
+            let attachmentsHTML = '';
+            if (msg.attachments && msg.attachments.length > 0) {
+                attachmentsHTML = '<div class="message-attachments">' +
+                    msg.attachments.map(att => {
+                        if (att.type.startsWith('image/')) {
+                            return `<img src="${att.data}" class="attachment-preview" alt="${att.name}">`;
+                        } else {
+                            return `<div class="attachment-file"><i class="fas fa-file"></i> ${att.name}</div>`;
+                        }
+                    }).join('') + '</div>';
+            }
+
+            let contentHTML = msg.role === 'user'
+                ? `<p>${escapeHtml(msg.content)}</p>`
+                : formatMarkdown(msg.content);
+
+            let actionsHTML = '';
+            if (msg.role === 'assistant') {
+                actionsHTML = `
+                    <div class="result-actions">
+                        <button class="result-btn" onclick="copyContent(this, \`${escapeForJs(msg.content)}\`)">
+                            <i class="fas fa-copy"></i> 复制
+                        </button>
+                        <button class="result-btn" onclick="regenerate()">
+                            <i class="fas fa-rotate"></i> 重新生成
+                        </button>
+                    </div>
+                `;
+            }
+
+            return `
+                <div class="message ${msg.role}">
+                    <div class="message-avatar">${avatar}</div>
+                    <div class="message-content">
+                        ${attachmentsHTML}
+                        ${contentHTML}
+                        ${actionsHTML}
+                    </div>
+                </div>
+            `;
+        }
+
+        function formatMarkdown(text) {
+            if (typeof marked !== 'undefined') {
+                marked.setOptions({
+                    highlight: function(code, lang) {
+                        if (typeof hljs !== 'undefined' && lang && hljs.getLanguage(lang)) {
+                            return hljs.highlight(code, { language: lang }).value;
+                        }
+                        return code;
+                    },
+                    breaks: true
+                });
+                return marked.parse(text);
+            }
+            return `<p>${escapeHtml(text).replace(/\n/g, '<br>')}</p>`;
+        }
+
+        // ========== 发送消息 ==========
+        async function sendMessage() {
+            const input = document.getElementById('userInput');
+            const text = input.value.trim();
+
+            if (!text && attachedFiles.length === 0) return;
+
+            const chat = chats[currentChatId];
+
+            // 构建用户消息
+            const userMessage = {
+                role: 'user',
+                content: text,
+                attachments: attachedFiles.map(f => ({
+                    name: f.name,
+                    type: f.type,
+                    data: f.data
+                }))
+            };
+
+            // 更新对话标题
+            if (chat.messages.length === 0 && text) {
+                chat.title = text.substring(0, 30) + (text.length > 30 ? '...' : '');
+                renderChatList();
+            }
+
+            // 添加用户消息
+            chat.messages.push(userMessage);
+            saveChats();
+
+            // 清空输入
+            input.value = '';
+            input.style.height = 'auto';
+            clearAttachments();
+
+            // 渲染用户消息
+            const area = document.getElementById('chatArea');
+            document.getElementById('welcomeMessage').style.display = 'none';
+            area.innerHTML += createMessageHTML(userMessage);
+
+            // 显示加载状态
+            const loadingHTML = `
+                <div class="message assistant" id="loadingMessage">
+                    <div class="message-avatar"><i class="fas fa-robot"></i></div>
+                    <div class="message-content">
+                        <div class="typing-indicator">
+                            <span></span><span></span><span></span>
+                        </div>
+                    </div>
+                </div>
+            `;
+            area.innerHTML += loadingHTML;
+            area.scrollTop = area.scrollHeight;
+
+            // 禁用发送按钮
+            document.getElementById('sendBtn').disabled = true;
+
+            try {
+                // 构建 API 请求
+                let queryText = text;
+
+                // 如果有图片，添加描述
+                const images = attachedFiles.filter(f => f.type.startsWith('image/'));
+                if (images.length > 0) {
+                    queryText += '\n\n[用户上传了 ' + images.length + ' 张图片]';
+                }
+
+                // 如果有其他文件，添加描述
+                const files = attachedFiles.filter(f => !f.type.startsWith('image/'));
+                if (files.length > 0) {
+                    queryText += '\n\n[用户上传了文件: ' + files.map(f => f.name).join(', ') + ']';
+                }
+
+                const response = await fetch(`${CONFIG.API_BASE_URL}/chat-messages`, {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${CONFIG.API_KEY}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        inputs: {},
+                        query: queryText,
+                        response_mode: 'blocking',
+                        user: 'user-' + Date.now()
+                    })
+                });
+
+                const data = await response.json();
+
+                // 移除加载消息
+                document.getElementById('loadingMessage')?.remove();
+
+                // 添加助手回复
+                const assistantMessage = {
+                    role: 'assistant',
+                    content: data.answer || '抱歉，生成失败，请重试。'
+                };
+                chat.messages.push(assistantMessage);
+                saveChats();
+
+                area.innerHTML += createMessageHTML(assistantMessage);
+                area.scrollTop = area.scrollHeight;
+
+            } catch (error) {
+                console.error('API Error:', error);
+                document.getElementById('loadingMessage')?.remove();
+
+                const errorMessage = {
+                    role: 'assistant',
+                    content: '⚠️ 网络错误，请检查连接后重试。'
+                };
+                chat.messages.push(errorMessage);
+                saveChats();
+
+                area.innerHTML += createMessageHTML(errorMessage);
+            }
+
+            document.getElementById('sendBtn').disabled = false;
+        }
+
+        function regenerate() {
+            const chat = chats[currentChatId];
+            if (chat.messages.length >= 2) {
+                // 移除最后的助手回复
+                chat.messages.pop();
+                saveChats();
+
+                // 获取最后的用户消息
+                const lastUserMsg = chat.messages[chat.messages.length - 1];
+
+                // 重新发送
+                document.getElementById('userInput').value = lastUserMsg.content;
+                attachedFiles = lastUserMsg.attachments || [];
+
+                // 移除最后的用户消息
+                chat.messages.pop();
+
+                sendMessage();
+            }
+        }
+
+        // ========== 文件处理 ==========
+        function setupFileInput() {
+            document.getElementById('fileInput').addEventListener('change', handleFiles);
+        }
+
+        function setupDragAndDrop() {
+            const wrapper = document.getElementById('inputWrapper');
+            const overlay = document.getElementById('dropOverlay');
+
+            ['dragenter', 'dragover'].forEach(event => {
+                wrapper.addEventListener(event, (e) => {
+                    e.preventDefault();
+                    overlay.classList.add('active');
+                });
+            });
+
+            ['dragleave', 'drop'].forEach(event => {
+                wrapper.addEventListener(event, (e) => {
+                    e.preventDefault();
+                    overlay.classList.remove('active');
+                });
+            });
+
+            wrapper.addEventListener('drop', (e) => {
+                const files = e.dataTransfer.files;
+                if (files.length > 0) {
+                    processFiles(files);
+                }
+            });
+
+            // 粘贴图片支持
+            document.getElementById('userInput').addEventListener('paste', (e) => {
+                const items = e.clipboardData.items;
+                for (let item of items) {
+                    if (item.type.startsWith('image/')) {
+                        const file = item.getAsFile();
+                        processFiles([file]);
+                    }
+                }
+            });
+        }
+
+        function handleFiles(e) {
+            processFiles(e.target.files);
+            e.target.value = '';
+        }
+
+        function processFiles(files) {
+            for (let file of files) {
+                if (attachedFiles.length >= 5) {
+                    alert('最多上传 5 个文件');
+                    break;
+                }
+
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    attachedFiles.push({
+                        name: file.name,
+                        type: file.type,
+                        data: e.target.result
+                    });
+                    renderAttachments();
+                };
+
+                if (file.type.startsWith('image/')) {
+                    reader.readAsDataURL(file);
+                } else {
+                    reader.readAsDataURL(file);
+                }
+            }
+        }
+
+        function renderAttachments() {
+            const container = document.getElementById('attachmentsPreview');
+
+            if (attachedFiles.length === 0) {
+                container.classList.remove('has-files');
+                container.innerHTML = '';
                 return;
             }
 
-            if (!isRecording) {
-                startRecording();
-                btn.classList.add('recording');
-                btn.innerHTML = '<i class="fas fa-stop"></i>';
-            } else {
+            container.classList.add('has-files');
+            container.innerHTML = attachedFiles.map((file, index) => {
+                if (file.type.startsWith('image/')) {
+                    return `
+                        <div class="preview-item">
+                            <img src="${file.data}" alt="${file.name}">
+                            <span class="file-name">${file.name}</span>
+                            <button class="remove-btn" onclick="removeAttachment(${index})">
+                                <i class="fas fa-times"></i>
+                            </button>
+                        </div>
+                    `;
+                } else {
+                    return `
+                        <div class="preview-item">
+                            <div class="file-icon"><i class="fas fa-file"></i></div>
+                            <span class="file-name">${file.name}</span>
+                            <button class="remove-btn" onclick="removeAttachment(${index})">
+                                <i class="fas fa-times"></i>
+                            </button>
+                        </div>
+                    `;
+                }
+            }).join('');
+        }
+
+        function removeAttachment(index) {
+            attachedFiles.splice(index, 1);
+            renderAttachments();
+        }
+
+        function clearAttachments() {
+            attachedFiles = [];
+            renderAttachments();
+        }
+
+        // ========== 语音输入 ==========
+        function toggleVoice() {
+            if (isRecording) {
                 stopRecording();
-                btn.classList.remove('recording');
-                btn.innerHTML = '<i class="fas fa-microphone"></i>';
+            } else {
+                startRecording();
             }
         }
 
         function startRecording() {
             const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+
+            if (!SpeechRecognition) {
+                alert('您的浏览器不支持语音识别，请使用 Chrome 浏览器');
+                return;
+            }
+
             recognition = new SpeechRecognition();
             recognition.continuous = true;
-            recognition.interimResults = true;
+            recognition.interimResults = false; // 只返回最终结果，避免重复
             recognition.lang = 'zh-CN';
 
             recognition.onresult = (event) => {
-                let transcript = '';
-                for (let i = event.resultIndex; i < event.results.length; i++) {
-                    transcript += event.results[i][0].transcript;
+                // 只获取最新的识别结果
+                const lastResult = event.results[event.results.length - 1];
+                if (lastResult.isFinal) {
+                    const transcript = lastResult[0].transcript;
+                    const input = document.getElementById('userInput');
+                    // 追加到现有文本
+                    if (input.value && !input.value.endsWith(' ')) {
+                        input.value += ' ';
+                    }
+                    input.value += transcript;
+                    adjustTextareaHeight();
                 }
-                document.getElementById('userInput').value += transcript;
             };
 
             recognition.onerror = (event) => {
                 console.error('语音识别错误:', event.error);
-                showToast('语音识别出错，请重试');
                 stopRecording();
+                if (event.error === 'not-allowed') {
+                    alert('请允许使用麦克风');
+                }
             };
 
-            recognition.start();
-            isRecording = true;
-            showToast('开始语音输入，请说话...');
+            recognition.onend = () => {
+                // 如果还在录音状态，重新开始（处理自动停止的情况）
+                if (isRecording) {
+                    try {
+                        recognition.start();
+                    } catch (e) {
+                        stopRecording();
+                    }
+                }
+            };
+
+            try {
+                recognition.start();
+                isRecording = true;
+                document.getElementById('voiceBtn').classList.add('recording');
+            } catch (e) {
+                console.error('启动语音识别失败:', e);
+            }
         }
 
         function stopRecording() {
             if (recognition) {
+                isRecording = false; // 先设置状态，防止 onend 重新启动
                 recognition.stop();
                 recognition = null;
             }
-            isRecording = false;
-            const btn = document.getElementById('voiceBtn');
-            btn.classList.remove('recording');
-            btn.innerHTML = '<i class="fas fa-microphone"></i>';
+            document.getElementById('voiceBtn').classList.remove('recording');
         }
 
-        // 生成提示词
-        async function generatePrompt() {
-            const userInput = document.getElementById('userInput').value.trim();
+        // ========== 文本框自适应 ==========
+        function setupTextarea() {
+            const textarea = document.getElementById('userInput');
 
-            if (!userInput && uploadedFiles.length === 0) {
-                showToast('请输入需求描述或上传文件');
-                return;
-            }
+            textarea.addEventListener('input', adjustTextareaHeight);
 
-            const generateBtn = document.getElementById('generateBtn');
-            const loading = document.getElementById('loadingOverlay');
-            const resultSection = document.getElementById('resultSection');
-
-            generateBtn.disabled = true;
-            loading.style.display = 'flex';
-
-            try {
-                // 处理文件
-                let fileContents = [];
-                for (let f of uploadedFiles) {
-                    if (f.preview) {
-                        fileContents.push({ type: 'image', data: f.preview, name: f.name });
-                    }
+            textarea.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter' && !e.shiftKey) {
+                    e.preventDefault();
+                    sendMessage();
                 }
-
-                // 构建请求
-                let query = userInput;
-                if (fileContents.length > 0) {
-                    query += '\n\n[用户上传了 ' + fileContents.length + ' 个文件]';
-                }
-
-                const response = await fetch(CONFIG.API_BASE_URL + '/chat-messages', {
-                    method: 'POST',
-                    headers: {
-                        'Authorization': 'Bearer ' + CONFIG.API_KEY,
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({
-                        inputs: {},
-                        query: query,
-                        response_mode: 'blocking',
-                        conversation_id: '',
-                        user: 'web-user-' + Date.now(),
-                        files: fileContents.map(f => ({
-                            type: 'image',
-                            transfer_method: 'local_file',
-                            upload_file_id: f.data
-                        }))
-                    })
-                });
-
-                if (!response.ok) {
-                    throw new Error('API请求失败: ' + response.status);
-                }
-
-                const data = await response.json();
-                const answer = data.answer || '生成失败，请重试';
-
-                // 渲染 Markdown
-                document.getElementById('resultContent').innerHTML = marked.parse(answer);
-
-                // 代码高亮
-                document.querySelectorAll('#resultContent pre code').forEach((block) => {
-                    hljs.highlightElement(block);
-                });
-
-                resultSection.style.display = 'block';
-                resultSection.scrollIntoView({ behavior: 'smooth' });
-
-            } catch (error) {
-                showToast('生成失败: ' + error.message);
-            } finally {
-                generateBtn.disabled = false;
-                loading.style.display = 'none';
-            }
-        }
-
-        // 复制结果
-        function copyResult() {
-            const content = document.getElementById('resultContent').innerText;
-            navigator.clipboard.writeText(content).then(() => {
-                showToast('已复制到剪贴板');
-            }).catch(() => {
-                showToast('复制失败，请手动选择复制');
             });
         }
 
-        // 显示提示
-        function showToast(message) {
-            const toast = document.getElementById('toast');
-            document.getElementById('toastText').textContent = message;
-            toast.style.display = 'flex';
-            setTimeout(() => { toast.style.display = 'none'; }, 3000);
+        function adjustTextareaHeight() {
+            const textarea = document.getElementById('userInput');
+            textarea.style.height = 'auto';
+            textarea.style.height = Math.min(textarea.scrollHeight, 200) + 'px';
         }
 
-        // 配置 marked
-        marked.setOptions({
-            highlight: function(code, lang) {
-                if (lang && hljs.getLanguage(lang)) {
-                    return hljs.highlight(code, { language: lang }).value;
-                }
-                return hljs.highlightAuto(code).value;
-            },
-            breaks: true
-        });
+        // ========== 工具函数 ==========
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        function escapeForJs(text) {
+            return text.replace(/\\/g, '\\\\')
+                      .replace(/`/g, '\\`')
+                      .replace(/\$/g, '\\$');
+        }
+
+        function formatTime(isoString) {
+            const date = new Date(isoString);
+            const now = new Date();
+            const diff = now - date;
+
+            if (diff < 60000) return '刚刚';
+            if (diff < 3600000) return Math.floor(diff / 60000) + ' 分钟前';
+            if (diff < 86400000) return Math.floor(diff / 3600000) + ' 小时前';
+            if (diff < 604800000) return Math.floor(diff / 86400000) + ' 天前';
+
+            return date.toLocaleDateString('zh-CN');
+        }
+
+        function copyContent(btn, text) {
+            navigator.clipboard.writeText(text).then(() => {
+                btn.classList.add('copied');
+                btn.innerHTML = '<i class="fas fa-check"></i> 已复制';
+                setTimeout(() => {
+                    btn.classList.remove('copied');
+                    btn.innerHTML = '<i class="fas fa-copy"></i> 复制';
+                }, 2000);
+            }).catch(err => {
+                // Fallback
+                const textarea = document.createElement('textarea');
+                textarea.value = text;
+                document.body.appendChild(textarea);
+                textarea.select();
+                document.execCommand('copy');
+                document.body.removeChild(textarea);
+
+                btn.classList.add('copied');
+                btn.innerHTML = '<i class="fas fa-check"></i> 已复制';
+                setTimeout(() => {
+                    btn.classList.remove('copied');
+                    btn.innerHTML = '<i class="fas fa-copy"></i> 复制';
+                }, 2000);
+            });
+        }
     </script>
 </body>
 </html>
