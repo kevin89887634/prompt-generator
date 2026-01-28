@@ -1158,26 +1158,7 @@
                     </div>
                 </header>
 
-                <div class="chat-area" id="chatArea">
-                    <div class="welcome-message" id="welcomeMessage">
-                        <h2 data-i18n="welcomeTitle">👋 你好！</h2>
-                        <p data-i18n="welcomeDesc">我是 AI 提示词生成助手，输入你的需求，我来帮你生成高质量的提示词。</p>
-                        <div class="quick-prompts" id="quickPrompts">
-                            <button class="quick-prompt-btn" data-prompt-zh="帮我写一个产品介绍文案" data-prompt-en="Help me write a product introduction" type="button">
-                                <span data-i18n="quickProduct">📝 产品文案</span>
-                            </button>
-                            <button class="quick-prompt-btn" data-prompt-zh="帮我生成一个营销活动策划方案" data-prompt-en="Help me generate a marketing campaign plan" type="button">
-                                <span data-i18n="quickMarketing">🎯 营销策划</span>
-                            </button>
-                            <button class="quick-prompt-btn" data-prompt-zh="帮我优化这段代码" data-prompt-en="Help me optimize this code" type="button">
-                                <span data-i18n="quickCode">💻 代码优化</span>
-                            </button>
-                            <button class="quick-prompt-btn" data-prompt-zh="帮我写一封商务邮件" data-prompt-en="Help me write a business email" type="button">
-                                <span data-i18n="quickEmail">✉️ 商务邮件</span>
-                            </button>
-                        </div>
-                    </div>
-                </div>
+                <div class="chat-area" id="chatArea"></div>
 
                 <div class="input-area">
                     <input type="file" id="fileInput" multiple accept="image/*,.pdf,.doc,.docx,.txt,.md,.json,.csv,.xlsx,.xls">
@@ -1762,15 +1743,6 @@
             $('fileInput').addEventListener('change', handleFileSelect);
             $('voiceBtn').addEventListener('click', toggleVoice);
             $('sendBtn').addEventListener('click', handleSendClick);
-
-            document.querySelectorAll('.quick-prompt-btn').forEach(btn => {
-                btn.addEventListener('click', () => {
-                    const prompt = currentLang === 'zh' ? btn.dataset.promptZh : btn.dataset.promptEn;
-                    $('userInput').value = prompt;
-                    $('userInput').focus();
-                    adjustTextareaHeight();
-                });
-            });
         }
 
         // ========== 主题切换 ==========
@@ -1889,17 +1861,39 @@
 
             $('currentChatTitle').textContent = chat.title;
             const area = $('chatArea');
-            const welcome = $('welcomeMessage');
 
             if (chat.messages.length === 0) {
-                welcome.style.display = 'block';
-                area.innerHTML = '';
-                area.appendChild(welcome);
+                // 显示欢迎消息
+                area.innerHTML = `
+                    <div class="welcome-message">
+                        <h2>${t('welcomeTitle')}</h2>
+                        <p>${t('welcomeDesc')}</p>
+                        <div class="quick-prompts">
+                            <button class="quick-prompt-btn" onclick="quickPrompt('${currentLang === 'zh' ? '帮我写一个产品介绍文案' : 'Help me write a product introduction'}')" type="button">
+                                <span>${t('quickProduct')}</span>
+                            </button>
+                            <button class="quick-prompt-btn" onclick="quickPrompt('${currentLang === 'zh' ? '帮我生成一个营销活动策划方案' : 'Help me generate a marketing campaign plan'}')" type="button">
+                                <span>${t('quickMarketing')}</span>
+                            </button>
+                            <button class="quick-prompt-btn" onclick="quickPrompt('${currentLang === 'zh' ? '帮我优化这段代码' : 'Help me optimize this code'}')" type="button">
+                                <span>${t('quickCode')}</span>
+                            </button>
+                            <button class="quick-prompt-btn" onclick="quickPrompt('${currentLang === 'zh' ? '帮我写一封商务邮件' : 'Help me write a business email'}')" type="button">
+                                <span>${t('quickEmail')}</span>
+                            </button>
+                        </div>
+                    </div>
+                `;
             } else {
-                welcome.style.display = 'none';
                 area.innerHTML = chat.messages.map((msg, idx) => createMessageHTML(msg, idx)).join('');
                 area.scrollTop = area.scrollHeight;
             }
+        }
+
+        function quickPrompt(text) {
+            $('userInput').value = text;
+            $('userInput').focus();
+            adjustTextareaHeight();
         }
 
         // ========== 重命名功能 ==========
@@ -2079,7 +2073,10 @@
             clearAttachments();
 
             const area = $('chatArea');
-            $('welcomeMessage').style.display = 'none';
+            // 清空欢迎消息，显示用户消息
+            if (chat.messages.length === 1) {
+                area.innerHTML = '';
+            }
             area.innerHTML += createMessageHTML(userMessage, chat.messages.length - 1);
 
             area.innerHTML += `
